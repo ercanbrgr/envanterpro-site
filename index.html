@@ -679,18 +679,23 @@ async function loadProfile() {
 async function loadAllData() {
   if (!currentProfile?.workspace_id) return;
   const wid = currentProfile.workspace_id;
-  const [bRes, pRes, eRes, sRes] = await Promise.all([
+  const [bRes, pRes, sRes] = await Promise.all([
     sb.from('branches').select('*').eq('workspace_id', wid).eq('active', true).order('name'),
     sb.from('products').select('*, categories(name,color)').eq('workspace_id', wid).eq('active', true).order('order_idx'),
-    sb.from('daily_entries').select('*').in('branch_id', await getBranchIds(wid)),
     sb.from('expiry_tracking').select('*').eq('workspace_id', wid).order('expiry_date')
   ]);
   appData.branches = bRes.data || [];
   appData.products = pRes.data || [];
-  appData.entries = eRes.data || [];
   appData.skt = sRes.data || [];
   if (!currentBranchId && appData.branches.length) {
     currentBranchId = appData.branches[0].id;
+  }
+  const branchIds = appData.branches.map(b => b.id);
+  if (branchIds.length > 0) {
+    const { data: eData } = await sb.from('daily_entries').select('*').in('branch_id', branchIds);
+    appData.entries = eData || [];
+  } else {
+    appData.entries = [];
   }
 }
 
