@@ -666,9 +666,14 @@ async function onSignedIn(user) {
     openApp();
   } catch(e) {
     loading(false);
+    console.error('onSignedIn error:', e);
+    toast('Giriş hatası: ' + (e.message||'Bilinmeyen hata'), 5000);
     showScreen('auth');
-    document.getElementById('giris-err').textContent = 'Hata: ' + e.message;
   }
+}
+
+async function refreshData() {
+  await loadAllData();
 }
 
 async function loadProfile() {
